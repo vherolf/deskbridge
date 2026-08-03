@@ -11,8 +11,13 @@ side.
 curl -fsSL https://raw.githubusercontent.com/vherolf/deskbridge/master/install.sh | bash
 ```
 
+now edit deskbridge.env and add your MQTT broker details
+```
+vim ~/bin/deskbridge.env
+```
+
 ```bash
-# edit ~/bin/deskbridge.env with your MQTT broker details, then:
+# restart systemctl
 systemctl --user restart deskbridge.service
 loginctl enable-linger "$USER"   # optional: keep running after logout
 ```
