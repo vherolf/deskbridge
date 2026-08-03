@@ -37,8 +37,8 @@ integration → MQTT, if you haven't done that yet.
 Once deskbridge is running, it announces itself via MQTT discovery, so
 there's no YAML to write. Within a few seconds a new device should show up
 under Settings → Devices & services → MQTT → Devices, named after the
-machine's hostname (or `DEVICE_NAME`), already carrying the battery/charging
-sensors and the volume/power buttons.
+machine's hostname (or `DEVICE_NAME`), already carrying the volume/power
+buttons — plus battery/charging sensors too, if the machine has a battery.
 
 To put the buttons on a dashboard: open the device page and use **Add to
 dashboard**, or add a manual button/tile card pointing at entities like
@@ -62,9 +62,10 @@ instead.
 
 `deskbridge.py` runs as a long-lived process per machine. On startup it:
 
-1. Publishes MQTT discovery config for a `sensor` (battery %), a
-   `binary_sensor` (charging), and four `button` entities (volume up,
-   volume down, mute, power) under `homeassistant/.../config`.
+1. Publishes MQTT discovery config for four `button` entities (volume up,
+   volume down, mute, power), plus a `sensor` (battery %) and
+   `binary_sensor` (charging) if the machine actually has a battery,
+   under `homeassistant/.../config`.
 2. Publishes `online` to `deskbridge/<device>/status` (retained), with an
    `offline` Last-Will-and-Testament so Home Assistant marks the device
    unavailable if it disconnects unexpectedly.
@@ -87,8 +88,10 @@ the same script/service runs unmodified on every PC.
 
 ## Requirements
 
-- Ubuntu (or any Linux with a battery exposed via `psutil`)
+- Ubuntu (or any Linux)
 - Python 3
+- No battery required — desktops without one just skip the battery/charging
+  sensors and still get the volume/power buttons
 - An MQTT broker reachable from the PC (e.g. the Mosquitto broker add-on
   in Home Assistant)
 - Home Assistant's MQTT integration configured against that broker
@@ -162,10 +165,11 @@ systemctl --user status deskbridge.service
 journalctl --user -u deskbridge.service -f
 ```
 
-Home Assistant should pick up six new entities automatically (via MQTT
-discovery) named after the device's hostname, e.g. `sensor.<host>_battery`,
-`binary_sensor.<host>_charging`, and buttons `button.<host>_volume_up`,
-`button.<host>_volume_down`, `button.<host>_mute`, `button.<host>_power`.
+Home Assistant should pick up four new button entities automatically (via
+MQTT discovery) named after the device's hostname, e.g.
+`button.<host>_volume_up`, `button.<host>_volume_down`, `button.<host>_mute`,
+`button.<host>_power` — plus `sensor.<host>_battery` and
+`binary_sensor.<host>_charging` if the machine has a battery.
 
 ## Building a standalone executable
 

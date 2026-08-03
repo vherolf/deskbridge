@@ -96,29 +96,30 @@ def press_media_key(media_key_device, button):
     media_key_device.syn()
 
 
-def publish_discovery(client, topics, device_id, device_info):
-    battery_config = {
-        "name": "Battery",
-        "unique_id": f"{device_id}_battery",
-        "state_topic": topics["state"],
-        "value_template": "{{ value_json.percentage }}",
-        "unit_of_measurement": "%",
-        "device_class": "battery",
-        "state_class": "measurement",
-        "availability_topic": topics["availability"],
-        "device": device_info,
-    }
-    charging_config = {
-        "name": "Charging",
-        "unique_id": f"{device_id}_charging",
-        "state_topic": topics["state"],
-        "value_template": "{{ 'ON' if value_json.charging else 'OFF' }}",
-        "device_class": "battery_charging",
-        "availability_topic": topics["availability"],
-        "device": device_info,
-    }
-    client.publish(topics["discovery_battery"], json.dumps(battery_config), retain=True)
-    client.publish(topics["discovery_charging"], json.dumps(charging_config), retain=True)
+def publish_discovery(client, topics, device_id, device_info, has_battery):
+    if has_battery:
+        battery_config = {
+            "name": "Battery",
+            "unique_id": f"{device_id}_battery",
+            "state_topic": topics["state"],
+            "value_template": "{{ value_json.percentage }}",
+            "unit_of_measurement": "%",
+            "device_class": "battery",
+            "state_class": "measurement",
+            "availability_topic": topics["availability"],
+            "device": device_info,
+        }
+        charging_config = {
+            "name": "Charging",
+            "unique_id": f"{device_id}_charging",
+            "state_topic": topics["state"],
+            "value_template": "{{ 'ON' if value_json.charging else 'OFF' }}",
+            "device_class": "battery_charging",
+            "availability_topic": topics["availability"],
+            "device": device_info,
+        }
+        client.publish(topics["discovery_battery"], json.dumps(battery_config), retain=True)
+        client.publish(topics["discovery_charging"], json.dumps(charging_config), retain=True)
 
     for button in KEY_BUTTONS:
         button_config = {
@@ -159,16 +160,16 @@ def main():
         "manufacturer": "deskbridge",
     }
 
-    if read_battery() is None:
-        log.error("No battery detected on this system (psutil.sensors_battery() returned None)")
-        sys.exit(1)
+    has_battery = read_battery() is not None
+    if not has_battery:
+        log.info("No battery detected on this system; skipping battery/charging sensors")
 
     media_key_device = create_media_key_device()
     command_topic_to_button = {topics[f"command_{b}"]: b for b in KEY_BUTTONS}
 
     def on_connect(client, userdata, flags, reason_code, properties=None):
         log.info("Connected to MQTT broker (%s)", reason_code)
-        publish_discovery(client, topics, device_id, device_info)
+        publish_discovery(client, topics, device_id, device_info, has_battery)
         client.publish(topics["availability"], "online", retain=True)
         if media_key_device is not None:
             for topic in command_topic_to_button:
