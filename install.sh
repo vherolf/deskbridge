@@ -1,15 +1,19 @@
 #!/usr/bin/env bash
-# Installs (or uninstalls) deskbridge into the current user's home
+# Installs, uninstalls, or purges deskbridge in the current user's home
 # directory: binary in ~/bin, config in ~/bin/deskbridge.env, systemd
 # --user service, and (if missing) the /dev/uinput udev rule.
 #
+# Run with no flag to be asked what to do (install/uninstall/purge) if a
+# terminal is attached, or pass one explicitly to skip the prompt:
+#
 #   curl -fsSL https://raw.githubusercontent.com/vherolf/deskbridge/master/install.sh | bash
-#
-# Uninstall (stops/disables the service and removes the binary + service
-# file; keeps deskbridge.env and the udev rule unless --purge is given):
-#
+#   curl -fsSL https://raw.githubusercontent.com/vherolf/deskbridge/master/install.sh | bash -s -- --install
 #   curl -fsSL https://raw.githubusercontent.com/vherolf/deskbridge/master/install.sh | bash -s -- --uninstall
 #   curl -fsSL https://raw.githubusercontent.com/vherolf/deskbridge/master/install.sh | bash -s -- --purge
+#
+# --uninstall stops/disables the service and removes the binary + service
+# file, but keeps deskbridge.env and the udev rule. --purge removes those
+# too.
 set -euo pipefail
 
 REPO="vherolf/deskbridge"
@@ -21,13 +25,38 @@ SERVICE_PATH="$SERVICE_DIR/deskbridge.service"
 UDEV_RULE_PATH="/etc/udev/rules.d/99-deskbridge-uinput.rules"
 UDEV_GROUP="plugdev"
 
-MODE="install"
+MODE=""
 case "${1:-}" in
+  --install) MODE="install" ;;
   --uninstall) MODE="uninstall" ;;
   --purge) MODE="purge" ;;
   "") ;;
-  *) echo "usage: $0 [--uninstall|--purge]" >&2; exit 1 ;;
+  *) echo "usage: $0 [--install|--uninstall|--purge]" >&2; exit 1 ;;
 esac
+
+if [ -z "$MODE" ]; then
+  # stdin is the piped script itself (curl | bash), so read the choice
+  # from the controlling terminal directly. Opening /dev/tty fails (not
+  # just "not found") when there isn't one, e.g. cron or CI.
+  if exec 3<>/dev/tty 2>/dev/null; then
+    echo "What would you like to do?"
+    echo "  1) Install / update deskbridge (default)"
+    echo "  2) Uninstall (stop the service, keep deskbridge.env and the udev rule)"
+    echo "  3) Purge (uninstall, and also remove deskbridge.env and the udev rule)"
+    read -r -p "Choice [1]: " choice <&3
+    exec 3<&-
+    case "$choice" in
+      2) MODE="uninstall" ;;
+      3) MODE="purge" ;;
+      "" | 1) MODE="install" ;;
+      *) echo "error: unrecognized choice '$choice'" >&2; exit 1 ;;
+    esac
+  else
+    echo "No terminal attached and no mode given; defaulting to install." >&2
+    echo "Pass --install/--uninstall/--purge explicitly to avoid this message." >&2
+    MODE="install"
+  fi
+fi
 
 do_install() {
   echo "==> Looking up latest release for $REPO"

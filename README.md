@@ -15,25 +15,28 @@ device announces itself `online`/`offline` via MQTT's Last-Will-and-Testament.
 curl -fsSL https://raw.githubusercontent.com/vherolf/deskbridge/master/install.sh | bash
 ```
 
-Downloads the latest release binary to `~/bin/deskbridge`, creates
+Run with no flags and it asks what to do — install/update, uninstall, or
+purge — reading the choice from your terminal even though `curl | bash`
+occupies stdin. Read [install.sh](install.sh) first if you'd like to see
+exactly what it does — it uses `sudo` for the udev rule step. Non-interactive
+(e.g. from a script) defaults to installing, or pass a flag explicitly to
+skip the prompt:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/vherolf/deskbridge/master/install.sh | bash -s -- --install
+curl -fsSL https://raw.githubusercontent.com/vherolf/deskbridge/master/install.sh | bash -s -- --uninstall  # keeps deskbridge.env + udev rule
+curl -fsSL https://raw.githubusercontent.com/vherolf/deskbridge/master/install.sh | bash -s -- --purge      # uninstall + remove those too
+```
+
+Install downloads the latest release binary to `~/bin/deskbridge`, creates
 `~/bin/deskbridge.env` if you don't already have one, installs the
 `systemd --user` service, and adds the `/dev/uinput` udev rule (for the
-volume/power buttons) if it's not already there. Read
-[install.sh](install.sh) first if you'd like to see exactly what it does —
-it uses `sudo` for the udev rule step. Then:
+volume/power buttons) if it's not already there. Then:
 
 ```bash
 # edit ~/bin/deskbridge.env with your MQTT broker details, then:
 systemctl --user start deskbridge.service
 loginctl enable-linger "$USER"   # optional: keep running after logout
-```
-
-To uninstall, stop/disable the service and remove the binary + service
-file (keeps `~/bin/deskbridge.env` and the udev rule by default; add
-`--purge` instead of `--uninstall` to remove those too):
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/vherolf/deskbridge/master/install.sh | bash -s -- --uninstall
 ```
 
 See [Manual install](#manual-install) below for building from source
