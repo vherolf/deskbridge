@@ -5,27 +5,16 @@ accepts commands back (volume, mute, power) — using MQTT discovery so each
 machine shows up automatically with no YAML configuration needed on the HA
 side.
 
-Built as a push-based reporter (rather than HA polling the machine) so it
-keeps working correctly across laptop sleep/wake and network changes: each
-device announces itself `online`/`offline` via MQTT's Last-Will-and-Testament.
-
 ## Quick install
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/vherolf/deskbridge/master/install.sh | bash
 ```
 
-Run with no flags and it asks what to do — install/update, uninstall, or
-purge — reading the choice from your terminal even though `curl | bash`
-occupies stdin. Read [install.sh](install.sh) first if you'd like to see
-exactly what it does — it uses `sudo` for the udev rule step. Non-interactive
-(e.g. from a script) defaults to installing, or pass a flag explicitly to
-skip the prompt:
-
 ```bash
-curl -fsSL https://raw.githubusercontent.com/vherolf/deskbridge/master/install.sh | bash -s -- --install
-curl -fsSL https://raw.githubusercontent.com/vherolf/deskbridge/master/install.sh | bash -s -- --uninstall  # keeps deskbridge.env + udev rule
-curl -fsSL https://raw.githubusercontent.com/vherolf/deskbridge/master/install.sh | bash -s -- --purge      # uninstall + remove those too
+# edit ~/bin/deskbridge.env with your MQTT broker details, then:
+systemctl --user restart deskbridge.service
+loginctl enable-linger "$USER"   # optional: keep running after logout
 ```
 
 Install downloads the latest release binary to `~/bin/deskbridge`, creates
@@ -33,14 +22,10 @@ Install downloads the latest release binary to `~/bin/deskbridge`, creates
 `systemd --user` service, and adds the `/dev/uinput` udev rule (for the
 volume/power buttons) if it's not already there. Then:
 
-```bash
-# edit ~/bin/deskbridge.env with your MQTT broker details, then:
-systemctl --user start deskbridge.service
-loginctl enable-linger "$USER"   # optional: keep running after logout
-```
 
 See [Manual install](#manual-install) below for building from source
 instead.
+
 
 ## Status
 
