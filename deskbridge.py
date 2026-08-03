@@ -100,6 +100,7 @@ def publish_discovery(client, topics, device_id, device_info, has_battery):
     if has_battery:
         battery_config = {
             "name": "Battery",
+            "object_id": f"{device_id}_battery",
             "unique_id": f"{device_id}_battery",
             "state_topic": topics["state"],
             "value_template": "{{ value_json.percentage }}",
@@ -111,6 +112,7 @@ def publish_discovery(client, topics, device_id, device_info, has_battery):
         }
         charging_config = {
             "name": "Charging",
+            "object_id": f"{device_id}_charging",
             "unique_id": f"{device_id}_charging",
             "state_topic": topics["state"],
             "value_template": "{{ 'ON' if value_json.charging else 'OFF' }}",
@@ -124,6 +126,7 @@ def publish_discovery(client, topics, device_id, device_info, has_battery):
     for button in KEY_BUTTONS:
         button_config = {
             "name": button.replace("_", " ").title(),
+            "object_id": f"{device_id}_{button}",
             "unique_id": f"{device_id}_{button}",
             "command_topic": topics[f"command_{button}"],
             "availability_topic": topics["availability"],

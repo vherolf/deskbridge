@@ -171,6 +171,13 @@ MQTT discovery) named after the device's hostname, e.g.
 `button.<host>_power` — plus `sensor.<host>_battery` and
 `binary_sensor.<host>_charging` if the machine has a battery.
 
+If you installed before v1.0.3, your entities were created without the
+`<host>_` prefix (e.g. `button.power` instead of `button.yoga_power`) and
+won't rename themselves after upgrading — entity_id is only assigned once,
+at first discovery. Rename them manually (entity settings → gear icon →
+edit entity ID) or delete the device under Settings → Devices & services →
+MQTT and let it get rediscovered with the new IDs.
+
 ## Building a standalone executable
 
 For deploying to another PC without setting up a venv there, you can build
