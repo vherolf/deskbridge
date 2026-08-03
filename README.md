@@ -1,12 +1,35 @@
 # deskbridge
 
 Reports system status from Linux PCs to Home Assistant over MQTT, and
-(planned) accepts commands back — using MQTT discovery so each machine
-shows up automatically with no YAML configuration needed on the HA side.
+accepts commands back (volume, mute, power) — using MQTT discovery so each
+machine shows up automatically with no YAML configuration needed on the HA
+side.
 
 Built as a push-based reporter (rather than HA polling the machine) so it
 keeps working correctly across laptop sleep/wake and network changes: each
 device announces itself `online`/`offline` via MQTT's Last-Will-and-Testament.
+
+## Quick install
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/vherolf/deskbridge/master/install.sh | bash
+```
+
+Downloads the latest release binary to `~/bin/deskbridge`, creates
+`~/bin/deskbridge.env` if you don't already have one, installs the
+`systemd --user` service, and adds the `/dev/uinput` udev rule (for the
+volume/power buttons) if it's not already there. Read
+[install.sh](install.sh) first if you'd like to see exactly what it does —
+it uses `sudo` for the udev rule step. Then:
+
+```bash
+# edit ~/bin/deskbridge.env with your MQTT broker details, then:
+systemctl --user start deskbridge.service
+loginctl enable-linger "$USER"   # optional: keep running after logout
+```
+
+See [Manual install](#manual-install) below for building from source
+instead.
 
 ## Status
 
@@ -52,33 +75,11 @@ the same script/service runs unmodified on every PC.
   in Home Assistant)
 - Home Assistant's MQTT integration configured against that broker
 - For the volume/power buttons: write access to `/dev/uinput` (see the
-  udev rule step below). Without it, deskbridge logs a warning at startup
+  udev rule step below). Without it, deskbridge logs an error at startup
   and keeps running with the battery sensors only — the buttons are just
   skipped.
 
-## Installation
-
-### Quick install (recommended)
-
-One-liner that downloads the latest release binary to `~/bin/deskbridge`,
-creates `~/bin/deskbridge.env` if you don't already have one, installs the
-`systemd --user` service, and adds the `/dev/uinput` udev rule if it's not
-already there:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/vherolf/deskbridge/master/install.sh | bash
-```
-
-Read [install.sh](install.sh) before piping it into `bash` if you'd like to
-see exactly what it does first — it does use `sudo` for the udev rule step.
-Then edit `~/bin/deskbridge.env` with your MQTT details and:
-
-```bash
-systemctl --user start deskbridge.service
-loginctl enable-linger "$USER"   # optional: keep running after logout
-```
-
-### Manual install
+## Manual install
 
 Prebuilt Linux x86_64 binaries (no Python/venv needed) are attached to each
 [GitHub release](https://github.com/vherolf/deskbridge/releases) — download
@@ -93,8 +94,8 @@ venv/bin/pip install -r requirements.txt
 ```
 
 Allow write access to `/dev/uinput` so deskbridge can emit media-key events
-without running as root (needed only for the volume buttons; safe to skip
-if you don't want them). This grants access to the `plugdev` group — check
+without running as root (needed only for the volume/power buttons; safe to
+skip if you don't want them). This grants access to the `plugdev` group — check
 `groups` and swap in a different group, or add yourself to `plugdev`, if
 your user isn't already a member:
 
@@ -122,7 +123,9 @@ default, or pass `-e /path/to/other.env`):
 venv/bin/python3 deskbridge.py
 ```
 
-Install and start it as a user systemd service (runs without root):
+Install and start it as a user systemd service (runs without root). Edit
+`ExecStart`/`EnvironmentFile` in `deskbridge.service` first if you cloned
+the repo somewhere other than the path they currently point at:
 
 ```bash
 mkdir -p ~/.config/systemd/user
@@ -173,10 +176,12 @@ directory instead of `venv/bin/python3 .../deskbridge.py`.
 
 ## Repeating on another PC
 
-The service is identical on every machine — clone the repo, create the
-venv, add the udev rule, set `deskbridge.env` (each machine gets its own
-`DEVICE_NAME`), and enable the systemd service. No changes needed on the
-Home Assistant side; new devices appear automatically via MQTT discovery.
+The service is identical on every machine — either re-run the
+[Quick install](#quick-install) one-liner (fastest: it handles the binary,
+`deskbridge.env`, service, and udev rule in one go), or repeat the manual
+steps above. Either way, give each machine its own `DEVICE_NAME`. No
+changes needed on the Home Assistant side; new devices appear automatically
+via MQTT discovery.
 
 ## Configuration reference (`deskbridge.env`)
 
