@@ -11,8 +11,14 @@ side.
 curl -fsSL https://raw.githubusercontent.com/vherolf/deskbridge/master/install.sh | bash
 ```
 
-now edit deskbridge.env and add your MQTT broker details
-```
+This downloads the latest release binary to `~/bin/deskbridge`, creates
+`~/bin/deskbridge.env` if you don't already have one, installs the
+`systemd --user` service, and adds the `/dev/uinput` udev rule (for the
+volume/power buttons) if it's not already there.
+
+Now edit `deskbridge.env` and add your MQTT broker details:
+
+```bash
 vim ~/bin/deskbridge.env
 ```
 
@@ -22,11 +28,22 @@ systemctl --user restart deskbridge.service
 loginctl enable-linger "$USER"   # optional: keep running after logout
 ```
 
-Install downloads the latest release binary to `~/bin/deskbridge`, creates
-`~/bin/deskbridge.env` if you don't already have one, installs the
-`systemd --user` service, and adds the `/dev/uinput` udev rule (for the
-volume/power buttons) if it's not already there. Then:
+### Add it to Home Assistant
 
+Make sure Home Assistant's MQTT integration is already set up against the
+same broker deskbridge is pointed at — Settings → Devices & services → Add
+integration → MQTT, if you haven't done that yet.
+
+Once deskbridge is running, it announces itself via MQTT discovery, so
+there's no YAML to write. Within a few seconds a new device should show up
+under Settings → Devices & services → MQTT → Devices, named after the
+machine's hostname (or `DEVICE_NAME`), already carrying the battery/charging
+sensors and the volume/power buttons.
+
+To put the buttons on a dashboard: open the device page and use **Add to
+dashboard**, or add a manual button/tile card pointing at entities like
+`button.<host>_volume_up`, `button.<host>_volume_down`, `button.<host>_mute`,
+and `button.<host>_power`.
 
 See [Manual install](#manual-install) below for building from source
 instead.
