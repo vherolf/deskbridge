@@ -121,6 +121,31 @@ discovery) named after the device's hostname, e.g. `sensor.<host>_battery`,
 `binary_sensor.<host>_charging`, and buttons `button.<host>_volume_up`,
 `button.<host>_volume_down`, `button.<host>_mute`, `button.<host>_power`.
 
+## Building a standalone executable
+
+For deploying to another PC without setting up a venv there, you can build
+a single self-contained binary (Python + all dependencies included) with
+[PyInstaller](https://pyinstaller.org/):
+
+```bash
+venv/bin/pip install -r requirements-build.txt
+venv/bin/pyinstaller --onefile --name deskbridge deskbridge.py
+```
+
+This produces `dist/deskbridge`. Copy that one file (plus a
+`deskbridge.env` alongside it) to the target machine and run it directly —
+no Python or venv required there:
+
+```bash
+./deskbridge
+```
+
+The binary is Linux-x86_64-specific (built for the architecture/distro you
+ran PyInstaller on), so build it on a machine similar to your target, or
+build separately per architecture. If you go this route, point
+`ExecStart`/`EnvironmentFile` in `deskbridge.service` at the binary and its
+directory instead of `venv/bin/python3 .../deskbridge.py`.
+
 ## Repeating on another PC
 
 The service is identical on every machine — clone the repo, create the

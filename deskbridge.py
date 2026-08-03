@@ -21,7 +21,11 @@ except ImportError:
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("deskbridge")
 
-DEFAULT_ENV_FILE = Path(__file__).resolve().parent / "deskbridge.env"
+if getattr(sys, "frozen", False):
+    _APP_DIR = Path(sys.executable).resolve().parent
+else:
+    _APP_DIR = Path(__file__).resolve().parent
+DEFAULT_ENV_FILE = _APP_DIR / "deskbridge.env"
 
 KEY_BUTTONS = ("volume_up", "volume_down", "mute", "power")
 
