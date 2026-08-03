@@ -1,0 +1,14 @@
+[Unit]
+Description=deskbridge agent for Home Assistant
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/home/fuerederp/projects/deskbridge/venv/bin/python3 /home/fuerederp/projects/deskbridge/deskbridge.py
+EnvironmentFile=/home/fuerederp/projects/deskbridge/deskbridge.env
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target
