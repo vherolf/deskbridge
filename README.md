@@ -58,7 +58,10 @@ the same script/service runs unmodified on every PC.
 
 ## Installation
 
-Clone the repo and set up a virtualenv:
+Prebuilt Linux x86_64 binaries (no Python/venv needed) are attached to each
+[GitHub release](https://github.com/vherolf/deskbridge/releases) — download
+one, drop a `deskbridge.env` next to it, and skip straight to "Run it
+manually to test" below. Otherwise, clone the repo and set up a virtualenv:
 
 ```bash
 git clone <this-repo-url> deskbridge
