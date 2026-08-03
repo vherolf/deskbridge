@@ -28,6 +28,14 @@ systemctl --user start deskbridge.service
 loginctl enable-linger "$USER"   # optional: keep running after logout
 ```
 
+To uninstall, stop/disable the service and remove the binary + service
+file (keeps `~/bin/deskbridge.env` and the udev rule by default; add
+`--purge` instead of `--uninstall` to remove those too):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/vherolf/deskbridge/master/install.sh | bash -s -- --uninstall
+```
+
 See [Manual install](#manual-install) below for building from source
 instead.
 
