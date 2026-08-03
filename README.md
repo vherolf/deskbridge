@@ -58,6 +58,28 @@ the same script/service runs unmodified on every PC.
 
 ## Installation
 
+### Quick install (recommended)
+
+One-liner that downloads the latest release binary to `~/bin/deskbridge`,
+creates `~/bin/deskbridge.env` if you don't already have one, installs the
+`systemd --user` service, and adds the `/dev/uinput` udev rule if it's not
+already there:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/vherolf/deskbridge/master/install.sh | bash
+```
+
+Read [install.sh](install.sh) before piping it into `bash` if you'd like to
+see exactly what it does first — it does use `sudo` for the udev rule step.
+Then edit `~/bin/deskbridge.env` with your MQTT details and:
+
+```bash
+systemctl --user start deskbridge.service
+loginctl enable-linger "$USER"   # optional: keep running after logout
+```
+
+### Manual install
+
 Prebuilt Linux x86_64 binaries (no Python/venv needed) are attached to each
 [GitHub release](https://github.com/vherolf/deskbridge/releases) — download
 one, drop a `deskbridge.env` next to it, and skip straight to "Run it
